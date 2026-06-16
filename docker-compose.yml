@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: hub
+      POSTGRES_PASSWORD: hub
+      POSTGRES_DB: hub
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "hub"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://hub:hub@postgres:5432/hub
+      META_USE_MOCK: "true"
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
